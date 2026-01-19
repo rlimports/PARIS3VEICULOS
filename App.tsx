@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './PARIS3VEICULOS/context/AuthContext';
-import Home from './PARIS3VEICULOS/pages/Home';
-import InventoryPage from './PARIS3VEICULOS/pages/InventoryPage';
-import AdminLogin from './PARIS3VEICULOS/pages/AdminLogin';
-import AdminDashboard from './PARIS3VEICULOS/pages/AdminDashboard';
+import { AuthProvider } from './context/AuthContext';
+import Home from './pages/Home';
+import InventoryPage from './pages/InventoryPage';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+
 
 const App: React.FC = () => {
   return (

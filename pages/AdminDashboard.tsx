@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getVehicles, getLeads, addVehicle, updateVehicle, deleteVehicle, deleteLead } from '../../store';
+import { getVehicles, getLeads, addVehicle, updateVehicle, deleteVehicle, deleteLead } from '../store';
 import { Vehicle, Lead } from '../types';
 import { EiffelIcon } from '../components/Icons';
 import { useAuth } from '../context/AuthContext';

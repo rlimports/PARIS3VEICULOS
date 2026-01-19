@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import VehicleCard from '../components/VehicleCard';
-import { getVehicles } from '../../store';
+import { getVehicles } from '../store';
 import { InterestForm } from '../components/Forms';
 import { Vehicle } from '../types';
 

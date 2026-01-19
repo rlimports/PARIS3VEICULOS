@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import VehicleCard from '../components/VehicleCard';
-import { getVehicles } from '../../store';
+import { getVehicles } from '../store';
 import { SellForm, FinanceForm, InterestForm } from '../components/Forms';
 import { Vehicle } from '../types';
 
