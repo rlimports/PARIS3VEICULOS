@@ -1,0 +1,7 @@
+{
+  "name": "PARIS 3 - Premium Vehicle Store",
+  "description": "A high-conversion vehicle dealership platform with premium aesthetics, public inventory, lead generation forms, and a private administrative dashboard for inventory and lead management.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
