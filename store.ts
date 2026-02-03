@@ -15,16 +15,30 @@ export const getVehicles = async (): Promise<Vehicle[]> => {
     return [];
   }
 
-  return (data || []).map(v => ({
-    id: v.id,
-    brand: v.brand,
-    model: v.model,
-    year: v.year,
-    mileage: v.mileage,
-    price: Number(v.price),
-    imageUrl: v.image_url || '',
-    category: v.category as 'Nacional' | 'Importado',
-  }));
+  return (data || []).map(v => {
+    let imageUrls: string[] = [];
+    try {
+      // Try to parse the image_url as JSON (for multiple images)
+      imageUrls = JSON.parse(v.image_url || '[]');
+      if (!Array.isArray(imageUrls)) {
+        imageUrls = v.image_url ? [v.image_url] : [];
+      }
+    } catch {
+      // Fallback for existing single string image URLs
+      imageUrls = v.image_url ? [v.image_url] : [];
+    }
+
+    return {
+      id: v.id,
+      brand: v.brand,
+      model: v.model,
+      year: v.year,
+      mileage: v.mileage,
+      price: Number(v.price),
+      imageUrls: imageUrls,
+      category: v.category as 'Nacional' | 'Importado',
+    };
+  });
 };
 
 export const addVehicle = async (vehicle: Omit<Vehicle, 'id'>): Promise<Vehicle | null> => {
@@ -36,7 +50,7 @@ export const addVehicle = async (vehicle: Omit<Vehicle, 'id'>): Promise<Vehicle 
       year: vehicle.year,
       mileage: vehicle.mileage,
       price: vehicle.price,
-      image_url: vehicle.imageUrl,
+      image_url: JSON.stringify(vehicle.imageUrls),
       category: vehicle.category,
     })
     .select()
@@ -54,7 +68,7 @@ export const addVehicle = async (vehicle: Omit<Vehicle, 'id'>): Promise<Vehicle 
     year: data.year,
     mileage: data.mileage,
     price: Number(data.price),
-    imageUrl: data.image_url || '',
+    imageUrls: JSON.parse(data.image_url || '[]'),
     category: data.category as 'Nacional' | 'Importado',
   };
 };
@@ -66,7 +80,7 @@ export const updateVehicle = async (id: string, updates: Partial<Vehicle>): Prom
   if (updates.year !== undefined) updateData.year = updates.year;
   if (updates.mileage !== undefined) updateData.mileage = updates.mileage;
   if (updates.price !== undefined) updateData.price = updates.price;
-  if (updates.imageUrl !== undefined) updateData.image_url = updates.imageUrl;
+  if (updates.imageUrls !== undefined) updateData.image_url = JSON.stringify(updates.imageUrls);
   if (updates.category !== undefined) updateData.category = updates.category;
 
   const { error } = await supabase

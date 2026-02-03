@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import VehicleCard from '../components/VehicleCard';
 import { getVehicles } from '../store';
 import { InterestForm } from '../components/Forms';
+import VehicleDetailsModal from '../components/VehicleDetailsModal';
 import { Vehicle } from '../types';
 
 const InventoryPage: React.FC = () => {
@@ -13,6 +14,7 @@ const InventoryPage: React.FC = () => {
   const [filter, setFilter] = useState<'Tudo' | 'Nacional' | 'Importado'>('Tudo');
   const [search, setSearch] = useState('');
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [selectedDetails, setSelectedDetails] = useState<Vehicle | null>(null);
 
   useEffect(() => {
     const loadVehicles = async () => {
@@ -83,7 +85,12 @@ const InventoryPage: React.FC = () => {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {filtered.map(v => (
-                  <VehicleCard key={v.id} vehicle={v} onInterest={setSelectedVehicle} />
+                  <VehicleCard
+                    key={v.id}
+                    vehicle={v}
+                    onInterest={setSelectedVehicle}
+                    onViewDetails={setSelectedDetails}
+                  />
                 ))}
               </div>
 
@@ -108,6 +115,12 @@ const InventoryPage: React.FC = () => {
         isOpen={!!selectedVehicle}
         onClose={() => setSelectedVehicle(null)}
         vehicle={selectedVehicle}
+      />
+      <VehicleDetailsModal
+        isOpen={!!selectedDetails}
+        onClose={() => setSelectedDetails(null)}
+        vehicle={selectedDetails}
+        onInterest={setSelectedVehicle}
       />
     </div>
   );

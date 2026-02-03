@@ -16,9 +16,11 @@ const AdminDashboard: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
-  const [tempImage, setTempImage] = useState<string>('');
+  const [tempImages, setTempImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
+  const urlInputRef = useRef<HTMLInputElement>(null);
+  const editUrlInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -65,28 +67,55 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = e.target.files;
+    if (files) {
+      const remainingSlots = 5 - tempImages.length;
+      if (remainingSlots <= 0) {
+        alert("Máximo de 5 imagens atingido.");
+        return;
+      }
+
+      const filesToProcess = Array.from(files).slice(0, remainingSlots);
       try {
-        const base64 = await fileToBase64(file);
-        setTempImage(base64);
+        const base64Promises = (filesToProcess as File[]).map(file => fileToBase64(file));
+        const newImages = await Promise.all(base64Promises);
+        setTempImages(prev => [...prev, ...newImages]);
       } catch (err) {
-        console.error("Erro ao processar imagem:", err);
-        alert("Erro ao processar a imagem. Tente novamente.");
+        console.error("Erro ao processar imagens:", err);
+        alert("Erro ao processar algumas imagens. Tente novamente.");
       }
     }
+    // Reset input so the same file can be selected again
+    if (e.target) e.target.value = '';
+  };
+
+  const handleAddUrl = (inputRef: React.RefObject<HTMLInputElement>) => {
+    const url = inputRef.current?.value;
+    if (url) {
+      if (tempImages.length >= 5) {
+        alert("Máximo de 5 imagens atingido.");
+        return;
+      }
+      setTempImages(prev => [...prev, url]);
+      if (inputRef.current) inputRef.current.value = '';
+    }
+  };
+
+  const removeTempImage = (index: number) => {
+    setTempImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleAddVehicle = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+
     const newVehicle = {
       brand: fd.get('brand') as string,
       model: fd.get('model') as string,
       year: fd.get('year') as string,
       mileage: parseInt(fd.get('mileage') as string) || 0,
       price: parseFloat(fd.get('price') as string) || 0,
-      imageUrl: tempImage || (fd.get('image_url') as string) || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800',
+      imageUrls: tempImages.length > 0 ? tempImages : ['https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800'],
       category: fd.get('category') as 'Nacional' | 'Importado',
     };
 
@@ -94,7 +123,7 @@ const AdminDashboard: React.FC = () => {
     if (result) {
       setVehicles(prev => [result, ...prev]);
       setShowAddModal(false);
-      setTempImage('');
+      setTempImages([]);
     } else {
       alert('Erro ao cadastrar veículo. Tente novamente.');
     }
@@ -110,7 +139,7 @@ const AdminDashboard: React.FC = () => {
       year: fd.get('year') as string,
       mileage: parseInt(fd.get('mileage') as string) || 0,
       price: parseFloat(fd.get('price') as string) || 0,
-      imageUrl: tempImage || (fd.get('image_url') as string),
+      imageUrls: tempImages,
       category: fd.get('category') as 'Nacional' | 'Importado',
     };
 
@@ -118,7 +147,7 @@ const AdminDashboard: React.FC = () => {
     if (success) {
       setVehicles(prev => prev.map(v => v.id === editingVehicle.id ? { ...v, ...updates } : v));
       setEditingVehicle(null);
-      setTempImage('');
+      setTempImages([]);
     } else {
       alert('Erro ao atualizar veículo. Tente novamente.');
     }
@@ -213,7 +242,7 @@ const AdminDashboard: React.FC = () => {
             {activeTab === 'inventory' ? 'Controle de Veículos' : 'Gerenciamento de Leads'}
           </h2>
           {activeTab === 'inventory' && (
-            <button type="button" onClick={() => { setTempImage(''); setShowAddModal(true); }} className="bg-[#89CFF0] text-zinc-950 px-8 py-4 rounded-2xl font-black text-xs hover:bg-[#78BFDF] transition-all transform active:scale-95 shadow-xl">
+            <button type="button" onClick={() => { setTempImages([]); setShowAddModal(true); }} className="bg-[#89CFF0] text-zinc-950 px-8 py-4 rounded-2xl font-black text-xs hover:bg-[#78BFDF] transition-all transform active:scale-95 shadow-xl">
               + CADASTRAR VEÍCULO
             </button>
           )}
@@ -224,9 +253,12 @@ const AdminDashboard: React.FC = () => {
             {vehicles.map(v => (
               <div key={v.id} className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden group hover:border-[#89CFF0]/30 transition-all duration-300 shadow-lg relative">
                 <div className="relative h-56 overflow-hidden">
-                  <img src={v.imageUrl} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" alt={v.model} />
+                  <img src={v.imageUrls[0] || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800'} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" alt={v.model} />
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 to-transparent"></div>
-                  <div className="absolute bottom-4 left-6">
+                  <div className="absolute bottom-4 left-6 text-white font-bold text-xs uppercase tracking-widest bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
+                    {v.imageUrls.length} {v.imageUrls.length === 1 ? 'Foto' : 'Fotos'}
+                  </div>
+                  <div className="absolute top-4 right-6">
                     <p className="text-[#89CFF0] font-black text-2xl tracking-tighter">
                       {v.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </p>
@@ -245,7 +277,7 @@ const AdminDashboard: React.FC = () => {
                   <div className="flex flex-col space-y-3 relative z-50 pointer-events-auto">
                     <button
                       type="button"
-                      onClick={() => { setEditingVehicle(v); setTempImage(v.imageUrl); }}
+                      onClick={() => { setEditingVehicle(v); setTempImages(v.imageUrls); }}
                       className="w-full flex items-center justify-center space-x-2 bg-zinc-800 text-white hover:bg-zinc-700 py-3 rounded-xl font-bold text-sm transition-all"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -309,27 +341,30 @@ const AdminDashboard: React.FC = () => {
             <h2 className="text-3xl font-black text-white mb-8">Novo Veículo</h2>
             <form onSubmit={handleAddVehicle} className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="md:col-span-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2 mb-2 block">Imagem do Veículo</label>
-                <div className="flex flex-col items-center justify-center w-full bg-zinc-800 border-2 border-dashed border-zinc-700 rounded-2xl p-6 transition-all hover:border-[#89CFF0]/50 group">
-                  {tempImage ? (
-                    <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-4">
-                      <img src={tempImage} className="w-full h-full object-cover" alt="Preview" />
-                      <button type="button" onClick={() => setTempImage('')} className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2 mb-2 block">Imagens do Veículo (Máx 5)</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                  {tempImages.map((img, index) => (
+                    <div key={index} className="relative aspect-video rounded-xl overflow-hidden group/img">
+                      <img src={img} className="w-full h-full object-cover" alt={`Preview ${index}`} />
+                      <button type="button" onClick={() => removeTempImage(index)} className="absolute top-1 right-1 bg-red-600 text-white p-1.5 rounded-full shadow-lg hover:scale-110 transition-transform opacity-0 group-hover/img:opacity-100">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
                     </div>
-                  ) : (
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center">
-                      <svg className="w-12 h-12 text-zinc-600 group-hover:text-[#89CFF0] mb-2 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                      <span className="text-zinc-500 font-bold text-sm">Clique para fazer upload</span>
+                  ))}
+                  {tempImages.length < 5 && (
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center justify-center aspect-video bg-zinc-800 border-2 border-dashed border-zinc-700 rounded-xl hover:border-[#89CFF0]/50 transition-all group">
+                      <svg className="w-8 h-8 text-zinc-600 group-hover:text-[#89CFF0] mb-1 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                      <span className="text-zinc-500 font-bold text-[10px]">ADD FOTO</span>
                     </button>
                   )}
-                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                 </div>
-                <div className="mt-4">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2 mb-2 block">Ou use uma URL</label>
-                  <input name="image_url" placeholder="https://..." className="w-full bg-zinc-800 border-none rounded-2xl p-4 text-white focus:ring-2 focus:ring-[#89CFF0]" />
-                </div>
+                {tempImages.length < 5 && (
+                  <div className="flex gap-2">
+                    <input ref={urlInputRef} placeholder="Ou cole a URL de uma imagem..." className="flex-1 bg-zinc-800 border-none rounded-xl p-3 text-sm text-white focus:ring-2 focus:ring-[#89CFF0]" />
+                    <button type="button" onClick={() => handleAddUrl(urlInputRef)} className="bg-zinc-700 text-white px-4 rounded-xl font-bold text-xs hover:bg-zinc-600">ADD</button>
+                  </div>
+                )}
+                <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
               </div>
               <input name="brand" required placeholder="Marca" className="w-full bg-zinc-800 border-none rounded-2xl p-4 text-white focus:ring-2 focus:ring-[#89CFF0]" />
               <input name="model" required placeholder="Modelo" className="w-full bg-zinc-800 border-none rounded-2xl p-4 text-white focus:ring-2 focus:ring-[#89CFF0]" />
@@ -342,7 +377,7 @@ const AdminDashboard: React.FC = () => {
               </select>
               <div className="md:col-span-2 flex space-x-4 mt-8">
                 <button type="submit" className="flex-1 bg-[#89CFF0] text-zinc-950 font-black py-5 rounded-2xl shadow-lg hover:bg-[#78BFDF] transition-all transform active:scale-95">SALVAR VEÍCULO</button>
-                <button type="button" onClick={() => { setShowAddModal(false); setTempImage(''); }} className="flex-1 bg-zinc-800 text-white font-black py-5 rounded-2xl">VOLTAR</button>
+                <button type="button" onClick={() => { setShowAddModal(false); setTempImages([]); }} className="flex-1 bg-zinc-800 text-white font-black py-5 rounded-2xl">VOLTAR</button>
               </div>
             </form>
           </div>
@@ -356,22 +391,30 @@ const AdminDashboard: React.FC = () => {
             <h2 className="text-3xl font-black text-white mb-8">Editar Veículo</h2>
             <form onSubmit={handleUpdateVehicle} className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="md:col-span-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2 mb-2 block">Alterar Imagem</label>
-                <div className="flex flex-col items-center justify-center w-full bg-zinc-800 border-2 border-dashed border-zinc-700 rounded-2xl p-6 transition-all hover:border-[#89CFF0]/50 group">
-                  {(tempImage || editingVehicle.imageUrl) ? (
-                    <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-4">
-                      <img src={tempImage || editingVehicle.imageUrl} className="w-full h-full object-cover" alt="Preview" />
-                      <button type="button" onClick={() => setTempImage('')} className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2 mb-2 block">Imagens do Veículo (Máx 5)</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                  {tempImages.map((img, index) => (
+                    <div key={index} className="relative aspect-video rounded-xl overflow-hidden group/img">
+                      <img src={img} className="w-full h-full object-cover" alt={`Preview ${index}`} />
+                      <button type="button" onClick={() => removeTempImage(index)} className="absolute top-1 right-1 bg-red-600 text-white p-1.5 rounded-full shadow-lg hover:scale-110 transition-transform opacity-0 group-hover/img:opacity-100">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
                     </div>
-                  ) : null}
-                  <button type="button" onClick={() => editFileInputRef.current?.click()} className="flex flex-col items-center">
-                    <svg className="w-10 h-10 text-zinc-600 group-hover:text-[#89CFF0] mb-2 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    <span className="text-zinc-500 font-bold text-sm">Trocar imagem</span>
-                  </button>
-                  <input ref={editFileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                  ))}
+                  {tempImages.length < 5 && (
+                    <button type="button" onClick={() => editFileInputRef.current?.click()} className="flex flex-col items-center justify-center aspect-video bg-zinc-800 border-2 border-dashed border-zinc-700 rounded-xl hover:border-[#89CFF0]/50 transition-all group">
+                      <svg className="w-8 h-8 text-zinc-600 group-hover:text-[#89CFF0] mb-1 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                      <span className="text-zinc-500 font-bold text-[10px]">ADD FOTO</span>
+                    </button>
+                  )}
                 </div>
+                {tempImages.length < 5 && (
+                  <div className="flex gap-2">
+                    <input ref={editUrlInputRef} placeholder="Adicionar URL..." className="flex-1 bg-zinc-800 border-none rounded-xl p-3 text-sm text-white focus:ring-2 focus:ring-[#89CFF0]" />
+                    <button type="button" onClick={() => handleAddUrl(editUrlInputRef)} className="bg-zinc-700 text-white px-4 rounded-xl font-bold text-xs hover:bg-zinc-600">ADD</button>
+                  </div>
+                )}
+                <input ref={editFileInputRef} type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
               </div>
               <input name="brand" required defaultValue={editingVehicle.brand} className="w-full bg-zinc-800 border-none rounded-2xl p-4 text-white focus:ring-2 focus:ring-[#89CFF0]" />
               <input name="model" required defaultValue={editingVehicle.model} className="w-full bg-zinc-800 border-none rounded-2xl p-4 text-white focus:ring-2 focus:ring-[#89CFF0]" />
@@ -384,7 +427,7 @@ const AdminDashboard: React.FC = () => {
               </select>
               <div className="md:col-span-2 flex space-x-4 mt-8">
                 <button type="submit" className="flex-1 bg-[#89CFF0] text-zinc-950 font-black py-5 rounded-2xl shadow-lg hover:bg-[#78BFDF] transition-all transform active:scale-95">ATUALIZAR DADOS</button>
-                <button type="button" onClick={() => { setEditingVehicle(null); setTempImage(''); }} className="flex-1 bg-zinc-800 text-white font-black py-5 rounded-2xl">VOLTAR</button>
+                <button type="button" onClick={() => { setEditingVehicle(null); setTempImages([]); }} className="flex-1 bg-zinc-800 text-white font-black py-5 rounded-2xl">VOLTAR</button>
               </div>
             </form>
           </div>

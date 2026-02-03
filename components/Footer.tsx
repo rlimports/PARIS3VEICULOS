@@ -32,8 +32,9 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-white font-bold mb-6">LOCALIZAÇÃO</h3>
             <p className="text-zinc-400 text-sm leading-relaxed mb-4">
-              Av. Automotiva Premium, 2026<br />
-              Centro, São Paulo - SP
+              Rua Araruna, 130<br />
+              (arena parisiense)<br />
+              São Paulo - SP
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-zinc-400 hover:text-[#89CFF0] transition-colors">

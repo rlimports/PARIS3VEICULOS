@@ -6,14 +6,18 @@ import Footer from '../components/Footer';
 import VehicleCard from '../components/VehicleCard';
 import { getVehicles } from '../store';
 import { SellForm, FinanceForm, InterestForm } from '../components/Forms';
+import VehicleDetailsModal from '../components/VehicleDetailsModal';
+import { EiffelIcon, WhatsAppIcon } from '../components/Icons';
 import { Vehicle } from '../types';
 
 const Home: React.FC = () => {
+  // ... (keeping existing state and effects unchanged)
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showSell, setShowSell] = useState(false);
   const [showFinance, setShowFinance] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [selectedDetails, setSelectedDetails] = useState<Vehicle | null>(null);
 
   useEffect(() => {
     const loadVehicles = async () => {
@@ -30,6 +34,12 @@ const Home: React.FC = () => {
   }, []);
 
   const featuredVehicles = vehicles.slice(0, 4);
+
+  const handleWhatsApp = () => {
+    const phone = "5511975866892";
+    const message = encodeURIComponent("Olá! Vi o site e gostaria de mais informações.");
+    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
@@ -69,28 +79,31 @@ const Home: React.FC = () => {
               Negócios rápidos. Carros de alto nível. A maior autoridade em intermediação de veículos premium de São Paulo.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-stretch">
               <button
                 onClick={() => setShowSell(true)}
-                className="group flex-1 bg-[#89CFF0] text-zinc-950 px-8 py-5 rounded-2xl font-black text-lg hover:bg-[#78BFDF] transition-all transform hover:scale-105 flex items-center justify-center space-x-3 shadow-[0_0_30px_rgba(137,207,240,0.3)]"
+                className="group flex-1 bg-[#89CFF0] text-zinc-950 px-8 py-6 rounded-2xl font-black text-lg hover:bg-[#78BFDF] transition-all transform hover:scale-[1.02] flex items-center justify-between space-x-4 shadow-[0_0_30px_rgba(137,207,240,0.3)]"
               >
-                <span>VENDER MEU CARRO</span>
+                <span className="text-left leading-tight">VENDER MEU<br />CARRO</span>
                 <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
               </button>
+
+              <button
+                onClick={handleWhatsApp}
+                className="flex-1 bg-white/5 backdrop-blur-md text-white border border-white/10 px-8 py-6 rounded-2xl font-black text-lg hover:bg-white/10 transition-all transform hover:scale-[1.02] flex items-center justify-center space-x-3"
+              >
+                <WhatsAppIcon className="w-6 h-6" />
+                <span className="text-left leading-tight uppercase">Chamar<br />WhatsApp</span>
+              </button>
+
               <button
                 onClick={() => setShowFinance(true)}
-                className="flex-1 bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-5 rounded-2xl font-black text-lg hover:bg-white/20 transition-all transform hover:scale-105 flex items-center justify-center"
+                className="flex-1 bg-white/5 backdrop-blur-md text-white border border-white/10 px-8 py-6 rounded-2xl font-black text-lg hover:bg-white/10 transition-all transform hover:scale-[1.02] flex items-center justify-center"
               >
                 FINANCIAMENTO
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-2 opacity-50 hover:opacity-100 transition-opacity">
-          <span className="text-white text-[10px] font-bold tracking-widest uppercase">Explore</span>
-          <div className="w-[1px] h-12 bg-gradient-to-b from-[#89CFF0] to-transparent" />
         </div>
       </section>
 
@@ -115,15 +128,20 @@ const Home: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {featuredVehicles.map(v => (
-                <VehicleCard key={v.id} vehicle={v} onInterest={setSelectedVehicle} />
+                <VehicleCard
+                  key={v.id}
+                  vehicle={v}
+                  onInterest={setSelectedVehicle}
+                  onViewDetails={setSelectedDetails}
+                />
               ))}
             </div>
           )}
         </div>
-      </section>
+      </section >
 
       {/* Stats Section */}
-      <section className="py-24 bg-zinc-900/50 border-y border-zinc-900">
+      < section className="py-24 bg-zinc-900/50 border-y border-zinc-900" >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
             <div>
@@ -144,7 +162,7 @@ const Home: React.FC = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
       <Footer />
 
@@ -156,7 +174,13 @@ const Home: React.FC = () => {
         onClose={() => setSelectedVehicle(null)}
         vehicle={selectedVehicle}
       />
-    </div>
+      <VehicleDetailsModal
+        isOpen={!!selectedDetails}
+        onClose={() => setSelectedDetails(null)}
+        vehicle={selectedDetails}
+        onInterest={setSelectedVehicle}
+      />
+    </div >
   );
 };
 

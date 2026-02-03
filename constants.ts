@@ -16,7 +16,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     year: '2023',
     mileage: 2500,
     price: 1250000,
-    imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800',
+    imageUrls: ['https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800'],
     category: 'Importado',
   },
   {
@@ -26,7 +26,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     year: '2024',
     mileage: 0,
     price: 850000,
-    imageUrl: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=800',
+    imageUrls: ['https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=800'],
     category: 'Importado',
   },
   {
@@ -36,7 +36,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     year: '2024',
     mileage: 0,
     price: 335000,
-    imageUrl: 'https://images.unsplash.com/photo-1621252086475-7b830d1d3658?auto=format&fit=crop&q=80&w=800',
+    imageUrls: ['https://images.unsplash.com/photo-1621252086475-7b830d1d3658?auto=format&fit=crop&q=80&w=800'],
     category: 'Nacional',
   },
   {
@@ -46,7 +46,7 @@ export const INITIAL_VEHICLES: Vehicle[] = [
     year: '2022',
     mileage: 12000,
     price: 1050000,
-    imageUrl: 'https://images.unsplash.com/photo-1606148429002-19342cca9591?auto=format&fit=crop&q=80&w=800',
+    imageUrls: ['https://images.unsplash.com/photo-1606148429002-19342cca9591?auto=format&fit=crop&q=80&w=800'],
     category: 'Importado',
   }
 ];

@@ -6,7 +6,7 @@ export interface Vehicle {
   year: string;
   mileage: number;
   price: number;
-  imageUrl: string;
+  imageUrls: string[];
   category: 'Nacional' | 'Importado';
 }
 
@@ -47,9 +47,9 @@ export type Lead = SellLead | FinanceLead | InterestLead;
 
 // LeadInput represents a Lead without auto-generated fields (id, date).
 // Using a union of Omit is necessary because Omit<Lead, K> would only include keys common to all Lead types.
-export type LeadInput = 
-  | Omit<SellLead, 'id' | 'date'> 
-  | Omit<FinanceLead, 'id' | 'date'> 
+export type LeadInput =
+  | Omit<SellLead, 'id' | 'date'>
+  | Omit<FinanceLead, 'id' | 'date'>
   | Omit<InterestLead, 'id' | 'date'>;
 
 export interface AppState {
