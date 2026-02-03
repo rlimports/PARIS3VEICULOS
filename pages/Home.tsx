@@ -46,7 +46,7 @@ const Home: React.FC = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center pt-20 overflow-hidden">
+      <section className="relative min-h-screen flex items-center pt-32 pb-32 md:pt-20 md:pb-0 overflow-visible">
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=2000"
