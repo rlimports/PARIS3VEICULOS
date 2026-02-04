@@ -50,11 +50,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     const signIn = useCallback(async (email: string, password: string) => {
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
-        return { error };
+        try {
+            // Timeout de 15 segundos para login
+            const timeoutPromise = new Promise<{ error: { message: string } }>((_, reject) =>
+                setTimeout(() => reject({ error: { message: 'Tempo limite de conexão excedido. Tente novamente.' } }), 15000)
+            );
+
+            const loginPromise = supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            const result = await Promise.race([loginPromise, timeoutPromise]) as { error: any };
+            return { error: result.error };
+        } catch (err: any) {
+            console.error('Login error:', err);
+            return { error: err.error || { message: 'Erro de conexão. Tente novamente.' } };
+        }
     }, []);
 
     const signUp = useCallback(async (email: string, password: string) => {
