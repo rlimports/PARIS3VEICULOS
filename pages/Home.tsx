@@ -49,15 +49,17 @@ const Home: React.FC = () => {
       <section className="relative min-h-screen flex items-center pt-32 pb-32 md:pt-20 md:pb-0 overflow-visible">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=2000"
-            className="w-full h-full object-cover animate-[ken-burns_20s_ease_infinite] brightness-[0.22] contrast-[1.1]"
+            src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=70&w=1280"
+            className="w-full h-full object-cover animate-[ken-burns_25s_ease_infinite] brightness-[0.22] contrast-[1.1]"
             alt="Luxury Sedan Background"
+            loading="eager"
+            fetchPriority="high"
           />
           <style>{`
             @keyframes ken-burns {
-              0% { transform: scale(1.05); }
-              50% { transform: scale(1.15); }
-              100% { transform: scale(1.05); }
+              0% { transform: scale(1.02); }
+              50% { transform: scale(1.08); }
+              100% { transform: scale(1.02); }
             }
           `}</style>
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />

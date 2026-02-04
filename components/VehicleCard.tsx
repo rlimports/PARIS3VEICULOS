@@ -18,6 +18,7 @@ const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onInterest, onViewDe
         <img
           src={vehicle.imageUrls[0] || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800'}
           alt={`${vehicle.brand} ${vehicle.model}`}
+          loading="lazy"
           className="w-full h-full object-cover transform group-hover/img:scale-110 transition-transform duration-700"
         />
         <div className="absolute inset-0 bg-black/20 group-hover/img:bg-black/0 transition-colors" />
@@ -69,4 +70,4 @@ const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onInterest, onViewDe
   );
 };
 
-export default VehicleCard;
+export default React.memo(VehicleCard);

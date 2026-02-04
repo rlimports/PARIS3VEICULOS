@@ -2,9 +2,26 @@
 import { supabase } from './supabaseClient';
 import { Vehicle, Lead, LeadInput } from './types';
 
+// ============== CACHE ==============
+let vehiclesCache: Vehicle[] | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_DURATION = 30000; // 30 segundos
+
+// Função para invalidar o cache
+export const invalidateVehiclesCache = () => {
+  vehiclesCache = null;
+  cacheTimestamp = 0;
+};
+
 // ============== VEHICLES ==============
 
 export const getVehicles = async (): Promise<Vehicle[]> => {
+  // Retorna cache se ainda for válido
+  const now = Date.now();
+  if (vehiclesCache && (now - cacheTimestamp) < CACHE_DURATION) {
+    return vehiclesCache;
+  }
+
   const { data, error } = await supabase
     .from('vehicles')
     .select('*')
@@ -12,10 +29,10 @@ export const getVehicles = async (): Promise<Vehicle[]> => {
 
   if (error) {
     console.error('Error fetching vehicles:', error);
-    return [];
+    return vehiclesCache || [];
   }
 
-  return (data || []).map(v => {
+  const vehicles = (data || []).map(v => {
     let imageUrls: string[] = [];
     try {
       // Try to parse the image_url as JSON (for multiple images)
@@ -39,6 +56,12 @@ export const getVehicles = async (): Promise<Vehicle[]> => {
       category: v.category as 'Nacional' | 'Importado',
     };
   });
+
+  // Salva no cache
+  vehiclesCache = vehicles;
+  cacheTimestamp = now;
+
+  return vehicles;
 };
 
 export const addVehicle = async (vehicle: Omit<Vehicle, 'id'>): Promise<Vehicle | null> => {
@@ -61,7 +84,7 @@ export const addVehicle = async (vehicle: Omit<Vehicle, 'id'>): Promise<Vehicle 
     return null;
   }
 
-  return {
+  const newVehicle: Vehicle = {
     id: data.id,
     brand: data.brand,
     model: data.model,
@@ -71,6 +94,10 @@ export const addVehicle = async (vehicle: Omit<Vehicle, 'id'>): Promise<Vehicle 
     imageUrls: JSON.parse(data.image_url || '[]'),
     category: data.category as 'Nacional' | 'Importado',
   };
+
+  // Invalida o cache após adicionar
+  invalidateVehiclesCache();
+  return newVehicle;
 };
 
 export const updateVehicle = async (id: string, updates: Partial<Vehicle>): Promise<boolean> => {
@@ -93,6 +120,8 @@ export const updateVehicle = async (id: string, updates: Partial<Vehicle>): Prom
     return false;
   }
 
+  // Invalida o cache após atualizar
+  invalidateVehiclesCache();
   return true;
 };
 
@@ -107,6 +136,8 @@ export const deleteVehicle = async (id: string): Promise<boolean> => {
     return false;
   }
 
+  // Invalida o cache após deletar
+  invalidateVehiclesCache();
   return true;
 };
 
