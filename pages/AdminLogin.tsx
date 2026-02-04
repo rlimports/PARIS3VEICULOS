@@ -24,10 +24,13 @@ const AdminLogin: React.FC = () => {
     setError('');
     setIsLoading(true);
 
+    console.log('Attempting login with:', email);
     const { error } = await signIn(email, password);
+    console.log('Login result:', error ? error.message : 'success');
 
     if (error) {
-      setError('Credenciais inválidas. Tente novamente.');
+      console.error('Login error details:', error);
+      setError(`Erro: ${error.message || 'Credenciais inválidas. Tente novamente.'}`);
       setIsLoading(false);
     } else {
       navigate('/admin/dashboard');
