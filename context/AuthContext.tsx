@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../supabaseClient';
 
@@ -49,34 +49,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return () => subscription.unsubscribe();
     }, []);
 
-    const signIn = async (email: string, password: string) => {
+    const signIn = useCallback(async (email: string, password: string) => {
         const { error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
         return { error };
-    };
+    }, []);
 
-    const signUp = async (email: string, password: string) => {
+    const signUp = useCallback(async (email: string, password: string) => {
         const { error } = await supabase.auth.signUp({
             email,
             password,
         });
         return { error };
-    };
+    }, []);
 
-    const signOut = async () => {
+    const signOut = useCallback(async () => {
         await supabase.auth.signOut();
-    };
+    }, []);
 
-    const value = {
+    // Memoize the value to prevent unnecessary re-renders
+    const value = useMemo(() => ({
         user,
         session,
         loading,
         signIn,
         signUp,
         signOut,
-    };
+    }), [user, session, loading, signIn, signUp, signOut]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

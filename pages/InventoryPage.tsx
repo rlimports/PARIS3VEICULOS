@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import VehicleCard from '../components/VehicleCard';
@@ -17,26 +17,41 @@ const InventoryPage: React.FC = () => {
   const [selectedDetails, setSelectedDetails] = useState<Vehicle | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     const loadVehicles = async () => {
       try {
         const data = await getVehicles();
-        setVehicles(data);
+        if (isMounted) {
+          setVehicles(data);
+        }
       } catch (error) {
         console.error('Error loading vehicles:', error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
     loadVehicles();
+    return () => { isMounted = false; };
   }, []);
 
-  const filtered = vehicles.filter(v => {
-    const matchesCategory = filter === 'Tudo' || v.category === filter;
-    const matchesSearch =
-      v.brand.toLowerCase().includes(search.toLowerCase()) ||
-      v.model.toLowerCase().includes(search.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  // Memoize filtered vehicles
+  const filtered = useMemo(() => {
+    const searchLower = search.toLowerCase();
+    return vehicles.filter(v => {
+      const matchesCategory = filter === 'Tudo' || v.category === filter;
+      const matchesSearch =
+        v.brand.toLowerCase().includes(searchLower) ||
+        v.model.toLowerCase().includes(searchLower);
+      return matchesCategory && matchesSearch;
+    });
+  }, [vehicles, filter, search]);
+
+  const handleClearFilters = useCallback(() => {
+    setFilter('Tudo');
+    setSearch('');
+  }, []);
 
   return (
     <div className="min-h-screen bg-zinc-950">
@@ -102,7 +117,7 @@ const InventoryPage: React.FC = () => {
                     </svg>
                   </div>
                   <h3 className="text-xl text-zinc-500 font-bold">Nenhum veículo encontrado com esses critérios.</h3>
-                  <button onClick={() => { setFilter('Tudo'); setSearch(''); }} className="mt-4 text-[#89CFF0] font-bold hover:underline">Limpar filtros</button>
+                  <button onClick={handleClearFilters} className="mt-4 text-[#89CFF0] font-bold hover:underline">Limpar filtros</button>
                 </div>
               )}
             </>

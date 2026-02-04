@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -7,11 +7,10 @@ import VehicleCard from '../components/VehicleCard';
 import { getVehicles } from '../store';
 import { SellForm, FinanceForm, InterestForm } from '../components/Forms';
 import VehicleDetailsModal from '../components/VehicleDetailsModal';
-import { EiffelIcon, WhatsAppIcon } from '../components/Icons';
+import { WhatsAppIcon } from '../components/Icons';
 import { Vehicle } from '../types';
 
 const Home: React.FC = () => {
-  // ... (keeping existing state and effects unchanged)
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showSell, setShowSell] = useState(false);
@@ -20,26 +19,33 @@ const Home: React.FC = () => {
   const [selectedDetails, setSelectedDetails] = useState<Vehicle | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     const loadVehicles = async () => {
       try {
         const data = await getVehicles();
-        setVehicles(data);
+        if (isMounted) {
+          setVehicles(data);
+        }
       } catch (error) {
         console.error('Error loading vehicles:', error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
     loadVehicles();
+    return () => { isMounted = false; };
   }, []);
 
-  const featuredVehicles = vehicles.slice(0, 4);
+  // Memoize featured vehicles
+  const featuredVehicles = useMemo(() => vehicles.slice(0, 4), [vehicles]);
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = useCallback(() => {
     const phone = "5511975866892";
     const message = encodeURIComponent("Olá! Vi o site e gostaria de mais informações.");
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
